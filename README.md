@@ -36,78 +36,23 @@ Microsoft ACE OLEDB 16.0 provider
 CSV dataset (example from Kaggle)
 
 .NET Framework / .NET Core (Windows only)
+
 ---
 📊 Sample Dataset (Kaggle)
 Employee Sample Data:
 https://www.kaggle.com/datasets/williamlucas0/employee-sample-data?select=Employee+Sample+Data+1.csv
----
-🏗️ Architecture Diagram
-Code
-+------------------+        +----------------------+        +----------------------+
-|   CSV File       | -----> |   DataTable Loader   | -----> |   Access DB Creator  |
-| (Kaggle Dataset) |        | (Parse CSV to DT)    |        | (ADOX .accdb schema) |
-+------------------+        +----------------------+        +----------------------+
-                                                                  |
-                                                                  v
-                                                         +----------------------+
-                                                         |  OleDbDataAdapter   |
-                                                         |  Insert into table  |
-                                                         +----------------------+
-                                                                  |
-                                                                  v
-                                                         +----------------------+
-                                                         |   EmployeeDB.accdb   |
-                                                         +----------------------+
-
-
 
 
 ---
-🔄 CSV → Access DB Flowchart
-Code
- ┌──────────────────────┐
- │   Load CSV File      │
- └──────────┬───────────┘
-            │
-            v
- ┌──────────────────────┐
- │ Convert to DataTable │
- └──────────┬───────────┘
-            │
-            v
- ┌──────────────────────┐
- │ Create .accdb (ADOX) │
- └──────────┬───────────┘
-            │
-            v
- ┌────────────────────────────┐
- │ Create Table Schema (ADOX) │
- └──────────┬─────────────────┘
-            │
-            v
- ┌────────────────────────────┐
- │ Insert Rows (OleDbAdapter) │
- └──────────┬─────────────────┘
-            │
-            v
- ┌──────────────────────┐
- │   Access DB Ready    │
- └──────────────────────┘
 
-
-
----
 🛠️ Sample Code — Create Access DB (ADOX)
-
-
+```csharp
   if (!File.Exists(accesspath))
                 {
                     ADOX.Catalog cat = new Catalog();
                     cat.Create(Convert.ToString("Provider=Microsoft.ACE.OLEDB.16.0;Data Source=") + accesspath);
                     ADOX.Table table = new Table();
-
                     table.Name = Path.GetFileNameWithoutExtension(accesspath);
-
                     if (lstCols.Count > 0)
                     {
                         lstCols.ForEach(c =>
@@ -119,16 +64,15 @@ Code
                             table.Columns.Append(col);
                         });
                     }
-
                     cat.Tables.Append(table);
                     cat = null;
                     flg = true;
                 }
 
-
+```
 ---
 🔌 Sample Code — Insert CSV Data (OleDbDataAdapter)
-
+```csharp
   using (OleDbConnection conn = new OleDbConnection(Convert.ToString("Provider=Microsoft.ACE.OLEDB.16.0;Data Source=") + accesspath))
                 {
                     using (OleDbDataAdapter dbadpter = new OleDbDataAdapter("SELECT * FROM " + accessfilename + "", conn))
@@ -151,7 +95,7 @@ Code
                     }
                 }
 
-
+```
 ---
 📌 Notes
 ADOX is used only for database + table creation
